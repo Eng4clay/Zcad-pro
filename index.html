@@ -1,227 +1,812 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Z-CAD Pro — Mini CAD Studio | ZULAL Project</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<style>
-:root{--bg-0:#06090f;--bg-1:#0d1420;--bg-2:#131c2b;--bg-3:#1a2538;--border:#263448;--border-2:#334764;--text-0:#e8eef6;--text-1:#a8b8cc;--text-2:#6b7f99;--accent:#00d4ff;--accent-2:#4fa8ff;--accent-glow:rgba(0,212,255,0.25);--success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--purple:#a855f7}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;font-family:'Tajawal',system-ui,sans-serif;background:var(--bg-0);color:var(--text-0);font-size:13px;user-select:none}
-#app{display:grid;grid-template-columns:200px 1fr 280px;grid-template-rows:44px 1fr 26px;grid-template-areas:"header header header" "left main right" "status status status";width:100vw;height:100vh}
-#topbar{grid-area:header;display:flex;align-items:center;padding:0 12px;background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border-bottom:1px solid var(--border);gap:16px;z-index:100}
-#topbar .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:var(--accent);letter-spacing:1px}
-#topbar .brand-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;box-shadow:0 0 12px var(--accent-glow)}
-#topbar .menu{display:flex;gap:2px}
-#topbar .menu button{background:transparent;border:none;color:var(--text-1);padding:6px 12px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;border-radius:4px;transition:all .15s}
-#topbar .menu button:hover{background:var(--bg-3);color:var(--text-0)}
-#topbar .menu .dropdown{position:relative}
-#topbar .menu .dropdown-menu{display:none;position:absolute;top:100%;right:0;min-width:180px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:200}
-#topbar .menu .dropdown.open .dropdown-menu{display:block}
-#topbar .menu .dropdown-menu button{display:block;width:100%;text-align:right;padding:8px 12px;border-radius:4px}
-#topbar .menu .dropdown-menu button:hover{background:var(--bg-3)}
-#topbar .spacer{flex:1}
-#topbar .view-buttons{display:flex;gap:4px;background:var(--bg-1);padding:3px;border-radius:6px;border:1px solid var(--border)}
-#topbar .view-buttons button{background:transparent;border:none;color:var(--text-2);padding:4px 10px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border-radius:4px;transition:all .15s}
-#topbar .view-buttons button:hover{background:var(--bg-3);color:var(--text-1)}
-#topbar .view-buttons button.active{background:var(--accent);color:var(--bg-0)}
-#toolbar{grid-area:left;background:var(--bg-1);border-left:1px solid var(--border);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
-#toolbar .tool-group h4{font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;padding-right:4px}
-#toolbar .tool-group button{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:var(--bg-2);border:1px solid transparent;border-radius:6px;color:var(--text-1);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:3px}
-#toolbar .tool-group button:hover{background:var(--bg-3);color:var(--text-0)}
-#toolbar .tool-group button.active{background:var(--accent);color:var(--bg-0);border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
-#toolbar .tool-group button .icon{font-size:16px;width:20px;text-align:center}
-#main{grid-area:main;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,var(--bg-1) 0%,var(--bg-0) 100%)}
-#cad-canvas{display:block;width:100%;height:100%;outline:none}
-#main .overlay{position:absolute;pointer-events:none;top:12px;left:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2);background:rgba(6,9,15,.8);padding:8px 12px;border-radius:6px;border:1px solid var(--border);line-height:1.6}
-#main .overlay strong{color:var(--accent)}
-#main .hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;color:var(--text-2);font-size:14px;line-height:1.8;max-width:400px;opacity:.7}
-#main .hint strong{color:var(--accent)}
-#properties{grid-area:right;background:var(--bg-1);border-right:1px solid var(--border);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
-.panel{background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px}
-.panel h4{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.panel h4::before{content:'';width:3px;height:12px;background:var(--accent);border-radius:2px}
-.panel .info-text{font-size:11px;color:var(--text-2);text-align:center;padding:12px 0}
-.vector-input{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
-.vector-input .field{background:var(--bg-1);border:1px solid var(--border);border-radius:4px;padding:4px 8px;display:flex;align-items:center;gap:4px}
-.vector-input .field label{font-size:10px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
-.vector-input .field input{flex:1;background:transparent;border:none;color:var(--text-0);font-family:'JetBrains Mono',monospace;font-size:11px;outline:none;width:100%;min-width:0}
-.vector-input .field input:focus{color:var(--accent)}
-.property-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11.5px;border-bottom:1px solid var(--border)}
-.property-row:last-child{border-bottom:none}
-.property-row .key{color:var(--text-2)}
-.property-row .value{color:var(--text-0);font-family:'JetBrains Mono',monospace;font-weight:500}
-.materials-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-.material-swatch{aspect-ratio:1;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
-.material-swatch:hover{transform:scale(1.1);border-color:var(--accent);z-index:10}
-.material-swatch.active{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
-.material-swatch::after{content:attr(data-label);position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);color:#fff;font-size:8px;text-align:center;padding:1px;opacity:0;transition:opacity .15s}
-.material-swatch:hover::after{opacity:1}
-#object-list{list-style:none;display:flex;flex-direction:column;gap:3px}
-#object-list .obj-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-1);border:1px solid transparent;border-radius:4px;cursor:pointer;transition:all .15s}
-#object-list .obj-item:hover{background:var(--bg-3)}
-#object-list .obj-item.active{background:var(--bg-3);border-color:var(--accent)}
-#object-list .obj-item .obj-icon{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
-#object-list .obj-item .obj-name{flex:1;font-size:11.5px;color:var(--text-0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#object-list .obj-item .obj-delete{background:transparent;border:none;color:var(--text-2);cursor:pointer;font-size:14px;padding:0 4px;border-radius:3px;opacity:0;transition:all .15s}
-#object-list .obj-item:hover .obj-delete{opacity:1}
-#object-list .obj-item .obj-delete:hover{color:var(--danger);background:rgba(239,68,68,.1)}
-.btn{padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:4px;color:var(--text-0);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{background:var(--bg-2);border-color:var(--accent);color:var(--accent)}
-.btn.primary{background:var(--accent);color:var(--bg-0);border-color:var(--accent)}
-.btn.primary:hover{background:var(--accent-2);border-color:var(--accent-2);color:var(--bg-0)}
-#statusbar{grid-area:status;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--bg-2);border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2)}
-#statusbar #coords{color:var(--accent)}
-#statusbar #status-message{color:var(--text-1)}
-#statusbar .status-right{display:flex;gap:12px}
-#statusbar .status-right span{color:var(--text-1)}
-dialog{border:1px solid var(--border-2);background:var(--bg-2);color:var(--text-0);border-radius:10px;padding:20px;min-width:320px;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.8)}
-dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
-dialog h3{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-dialog .form-group{margin-bottom:14px}
-dialog label{display:block;font-size:11px;color:var(--text-2);margin-bottom:6px;font-weight:600;letter-spacing:.5px}
-dialog input{width:100%;padding:8px 12px;background:var(--bg-1);border:1px solid var(--border);border-radius:6px;color:var(--text-0);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:all .15s}
-dialog input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-dialog .dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
-dialog .dialog-actions .btn{padding:8px 16px;font-size:12px}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg-1)}
-::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:var(--accent)}
-#toast-container{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px;align-items:center}
-.toast{background:var(--bg-2);border:1px solid var(--accent);color:var(--text-0);padding:10px 18px;border-radius:8px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 20px var(--accent-glow);animation:toast-in .3s ease;display:flex;align-items:center;gap:8px}
-.toast.success{border-color:var(--success)}
-.toast.error{border-color:var(--danger)}
-@keyframes toast-in{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-#loader{position:fixed;inset:0;background:var(--bg-0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
-#loader.hidden{opacity:0;pointer-events:none}
-#loader .spinner{width:50px;height:50px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loader .text{margin-top:20px;color:var(--text-2);font-size:12px;letter-spacing:2px;text-transform:uppercase}
-@media(max-width:900px){#app{grid-template-columns:60px 1fr 200px}#toolbar .tool-group button span:not(.icon){display:none}#toolbar .tool-group button{justify-content:center}}
-@media(max-width:700px){#app{grid-template-columns:1fr;grid-template-areas:"header" "main" "status"}#toolbar,#properties{display:none}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Z·CAD Pro — Magnetocaloric Refrigeration System</title>
+    
+    <!-- خطوط جوجل -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة es-module-shims لدعم importmap على جميع المتصفحات (بما فيها Safari) -->
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+
+    <!-- تعريف مكتبات Three.js -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-main: #f0f2f5; /* خلفية SolidWorks */
+            --bg-panel: #ffffff;
+            --bg-header: #0B2545;
+            --text-main: #1a2433;
+            --text-muted: #6b7f99;
+            --accent: #00d4ff;
+            --accent-dark: #1a6fa8;
+            --border: #d0dce8;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 240px 1fr 280px;
+            grid-template-rows: 50px 1fr 30px;
+            grid-template-areas: 
+                "header header header"
+                "sidebar main properties"
+                "status status status";
+        }
+
+        /* ============ HEADER ============ */
+        #header {
+            grid-area: header;
+            background: var(--bg-header);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--accent);
+            z-index: 10;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+        .logo-icon { width: 30px; height: 30px; background: linear-gradient(135deg, #00d4ff, #8b5cff); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .view-controls { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 6px; }
+        .view-btn { background: transparent; border: none; color: #a8b8cc; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .view-btn:hover { color: white; }
+        .view-btn.active { background: var(--accent); color: var(--bg-header); }
+
+        /* ============ SIDEBAR ============ */
+        #sidebar {
+            grid-area: sidebar;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 5;
+        }
+        .tool-section h3 { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .tool-btn {
+            width: 100%; display: flex; align-items: center; gap: 10px;
+            padding: 10px; background: #f8fafc; border: 1px solid var(--border);
+            borderJet-radius: 6px; color: var(--text-main); font-family: inherit;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;
+            margin-bottom: 6px;
+        }
+        .tool-btn:hover { background: #eaf3fb; border-color: var(--accent-dark); }
+        .tool-btn.active { background: var(--accent-dark); color: white; border-color: var(--accent-dark); box-shadow: 0 4px 10px rgba(26,111,168,0.3); }
+        .tool-btn .icon { font-size: 18px; }
+
+        /* ============ MAIN CANVAS ============ */
+        #main {
+            grid-area: main;
+            position: relative;
+            background: linear-gradient(180deg, #ffffffBrains 0%, #e Mono8e8e8 100%); /* Solid',Works Background */
+            overflow: hidden;
+        }
+        mon #cad-canvas { display: block; width: ospace100%; height: 100%; outline: none;; }
+        
+        /* HUD Overlay */
+        #hud font {
+            position: absolute; top: 15px; left-size: : 15px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            padding: 10px 15px; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px; color: var(--text-main);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            pointer-events: none;
+        }
+        #hud strong { color: var(--accent-dark); }
+        
+        /* Dimension Annotations */
+        .dimension-label {
+            position: absolute; background: white; border: 1px solid #333;
+            padding: 2px 6px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+            transform: translate(-50%, -50%); pointer-events: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #333;
+        }
+        .dimension-label::before, .dimension-label::after {
+            content: ''; position: absolute; top: 50%; width: 10px; height: 1px; background: #333;
+        }
+        .dimension-label::before { right: 100%; }
+        .dimension-label::after { left: 100%; }
+
+        /* ============ PROPERTIES PANEL ============ */
+        #properties {
+            grid-area: properties;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            padding: 15px;
+            overflow-y: auto;
+            z-index: 5;
+        }
+        .prop-group { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+        .prop-group h4 { font-size: 12px; color: var(--accent-dark); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
+        .prop-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+        .prop-row span:first-child { color: var(--text-muted); }
+        
+        .mat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .mat-swatch { aspect-ratio: 1; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; position: relative; }
+        .mat-swatch:hover { transform: scale(1.05); }
+        .mat-swatch.active { border-color: var(--accent-dark); box-shadow: 0 0 0 2px rgba(26,111,168,0.3); }
+        .mat-swatch span { position: absolute; bottom: -18px; left: 0; right: 0; text-align: center; font-size: 9px; color: var(--text-muted); }
+
+        /* ============ STATUS BAR ============ */
+        #statusbar {
+            grid-area: status;
+            background: var(--bg-header); color: #a8b8cc;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; font-family: '11px;
+        }
+
+        /* ============ DIALOG ============ */
+        dialog { border: none; border-radius: 10px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 300px; }
+        dialog::backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); }
+        dialog h3 { margin-bottom: 15px; color: var(--accent-dark); font-size: 16px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 13px; }
+        .dialog-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn { padding: 8px 16px; border-radius: 6px; font-family: inherit; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: white; transition: 0.2s; }
+        .btn:hover { background: #f0f2f5; }
+        .btn.primary { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
+        .btn.primary:hover { background: #155c8c; }
+
+        /* Loading Screen */
+        #loader { position: fixed; inset: 0; background: #0B2545; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        #loader.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #00d4ff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loader p { color: #00d4ff; margin-top: 15px; font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            body { grid-template-columns: 60px 1fr 200px; }
+            .tool-btn span:not(.icon) { display: none; }
+            .tool-btn { justify-content: center; padding: 12px; }
+        }
+        @media (max-width: 600px) {
+            body { grid-template-columns: 60px 1fr; grid-template-areas: "header header" "sidebar main" "status status"; }
+            #properties { display: none; }
+        }
+    </style>
 </head>
 <body>
-<div id="loader"><div class="spinner"></div><div class="text">Loading Z-CAD Pro</div></div>
 
-<div id="app">
-  <header id="topbar">
-    <div class="brand"><div class="brand-icon">Z</div><span>Z·CAD Pro</span></div>
-    <nav class="menu">
-      <div class="dropdown" data-menu="file"><button>ملف</button><div class="dropdown-menu">
-        <button onclick="newScene()">جديد</button>
-        <button onclick="exportSTL()">تصدير STL</button>
-        <button onclick="exportOBJ()">تصدير OBJ</button>
-        <button onclick="exportJSON()">حفظ المشروع</button>
-        <button onclick="document.getElementById('file-input').click()">استيراد مشروع</button>
-      </div></div>
-      <div class="dropdown" data-menu="edit"><button>تحرير</button><div class="dropdown-menu">
-        <button onclick="undo()">تراجع (Ctrl+Z)</button>
-        <button onclick="redo()">إعادة (Ctrl+Y)</button>
-        <button onclick="duplicateSelected()">تكرار (Ctrl+D)</button>
-        <button onclick="deleteSelected()">حذف (Del)</button>
-      </div></div>
-      <div class="dropdown" data-menu="view"><button>عرض</button><div class="dropdown-menu">
-        <button onclick="setView('iso')">أيزومتري</button>
-        <button onclick="setView('front')">أمامي</button>
-        <button onclick="setView('top')">علوي</button>
-        <button onclick="setView('right')">جانبي</button>
-        <button onclick="toggleOrtho()">تبديل الإسقاط</button>
-        <button onclick="toggleGrid()">إظهار/إخفاء الشبكة</button>
-      </div></div>
-    </nav>
-    <div class="spacer"></div>
-    <div class="view-buttons">
-      <button data-view="iso" class="active">ISO</button>
-      <button data-view="front">أمامي</button>
-      <button data-view="top">علوي</button>
-      <button data-view="right">جانبي</button>
-    </div>
-  </header>
-  
-  <aside id="toolbar">
-    <div class="tool-group">
-      <h4>رسم (Sketch)</h4>
-      <button data-tool="select" class="active"><span class="icon">↖</span><span>تحديد</span></button>
-      <button data-tool="rectangle"><span class="icon">▭</span><span>مستطيل</span></button>
-      <button data-tool="circle"><span class="icon">◯</span><span>دائرة</span></button>
-      <button data-tool="polygon"><span class="icon">⬠</span><span>مضلع</span></button>
-    </div>
-    <div class="tool-group">
-      <h4>تحويل (Transform)</h4>
-      <button data-tool="move"><span class="icon">✥</span><span>تحريك</span></button>
-      <button data-tool="rotate"><span class="icon">↻</span><span>تدوير</span></button>
-      <button data-tool="scale"><span class="icon">⤢</span><span>تكبير</span></button>
-    </div>
-    <div class="tool-group">
-      <h4>خيارات</h4>
-      <button id="snap-toggle" class="active"><span class="icon">🎯</span><span>الالتصاق</span></button>
-    </div>
-  </aside>
-  
-  <main id="main">
-    <canvas id="cad-canvas"></canvas>
-    <div class="overlay">
-      <div><strong>الوضع:</strong> <span id="mode-display">تحديد</span></div>
-      <div><strong>الأداة:</strong> <span id="tool-display">بدون</span></div>
-      <div><strong>الشبكة:</strong> <span id="snap-display">1.0 mm</span></div>
-    </div>
-    <div class="hint" id="hint"><strong>ابدأ الرسم</strong><br>اختر أداة من الشريط الجانبي<br>أو استورد مشروعاً من قائمة "ملف"</div>
-  </main>
-  
-  <aside id="properties">
-    <div class="panel"><h4>خصائص الجسم</h4><div id="properties-content"><div class="info-text">لا يوجد جسم محدد</div></div></div>
-    <div class="panel"><h4>المادة</h4><div class="materials-grid" id="materials"></div></div>
-    <div class="panel"><h4>الأجسام في المشهد</h4><ul id="object-list"></ul></div>
-    <div class="panel"><h4>إحصائيات</h4>
-      <div class="property-row"><span class="key">عدد الأجسام</span><span class="value" id="stat-objects">0</span></div>
-      <div class="property-row"><span class="key">إجمالي الرؤوس</span><span class="value" id="stat-vertices">0</span></div>
-      <div class="property-row"><span class="key">إجمالي المثلثات</span><span class="value" id="stat-triangles">0</span></div>
-    </div>
-  </aside>
-  
-  <footer id="statusbar">
-    <div><span id="coords">X: 0.0  Y: 0.0  Z: 0.0</span></div>
-    <div id="status-message">جاهز</div>
-    <div class="status-right"><span id="fps-display">-- FPS</span><span>Z·CAD Pro v1.0</span></div>
-  </footer>
+<div id="loader">
+    <div class="spinner"></div>
+    <p>INITIALIZING Z·CAD PRO</p>
 </div>
 
-<input type="file" id="file-input" style="display:none" accept=".json">
-
-<dialog id="extrude-dialog">
-  <form method="dialog" id="extrude-form">
-    <h3>⚙️ إعدادات البثق (Extrude)</h3>
-    <div class="form-group"><label>ارتفاع البثق (mm)</label><input type="number" id="extrude-height" value="20" step="0.1" min="0.1" required></div>
-    <div class="form-group"><label>اسم الجسم</label><input type="text" id="extrude-name" placeholder="Body_001"></div>
-    <div class="dialog-actions">
-      <button type="button" class="btn" onclick="cancelExtrude()">إلغاء</button>
-      <button type="submit" class="btn primary">إنشاء</button>
+<div id="header">
+    <div class="logo">
+        <div class="logo-icon">Z</div>
+        <span>Z·CAD Pro <small style="font-size:10px;font-weight:400;opacity:0.7">| AMR System</small></span>
     </div>
-  </form>
+    <div class="view-controls">
+        <button class="view-btn active" onclick="setView('iso')">ISO</button>
+        <button class="view-btn" onclick="setView('front')">FRONT</button>
+        <button class="view-btn" onclick="setView('top')">TOP</button>
+        <button class="view-btn" onclick="setView('right')">RIGHT</button>
+    </div>
+</div>
+
+<div id="sidebar">
+    <div class="tool-section">
+        <h3>النماذج (Templates)</h3>
+        <button class="tool-btn active" onclick="loadAMRModel()"><span class="icon">🧲</span><span>نظام AMR</span></button>
+        <button class="tool-btn" onclick="loadCube()"><span class="icon">🧊</span><span>مكعب أساسي</span></button>
+        <button class="tool-btn" onclick="clearScene()"><span class="icon">🗑️</span><span>مسح المشهد</span></button>
+    </div>
+    <div class="tool-section">
+        <h3>رسم (Sketch)</h3>
+        <button class="tool-btn" onclick="setTool('rect')"><span class="icon">▭</span><span>مستطيل</span></button>
+        <button class="tool-btn" onclick="setTool('circle')"><span class="icon">◯</span><span>دائرة</span></button>
+    </div>
+    <div class="tool-section">
+        <h3>تحويل (Transform)</h3>
+        <button class="tool-btn active" onclick="setTool('select')"><span class="icon">↖</span><span>تحديد</span></button>
+        <button class="tool-btn" onclick="toggleTransform('translate')"><span class="icon">✥</span><span>تحريك</span></button>
+        <button class="tool-btn" onclick="toggleTransform('rotate')"><span class="icon">↻</span><span>تدوير</span></button>
+    </div>
+</div>
+
+<div id="main">
+    <canvas id="cad-canvas"></canvas>
+    <div id="hud">
+        <div><strong>Tool:</strong> <span id="hud-tool">Select</span></div>
+        <div><strong>Status:</strong> <span id="hud-status">AMR Loaded</span></div>
+        <div><strong>Parts:</strong> <span id="hud-parts">12</span></div>
+    </div>
+    <!-- 3D Annotations will be projected here -->
+    <div id="annotations-container" style="position:absolute;inset:0;pointer-events:none;"></div>
+</div>
+
+<div id="properties">
+    <div class="prop-group">
+        <h4>خصائص التجميع (Assembly)</h4>
+        <div class="prop-row"><span>Name</span><span>AMR_Assembly</span></div>
+        <div class="prop-row"><span>Material</span><span>Mixed (Steel/Cu/Brass)</span></div>
+        <div class="prop-row"><span>Units</span><span>Millimeters (mm)</span></div>
+    </div>
+    
+    <div class="prop-group">
+        <h4>المواد (Materials)</h4>
+        <div class="mat-grid" id="material-grid">
+            <div class="mat-swatch active" style="background:#708090" onclick="applyMaterial('steel')" title="Polished Steel"><span>Steel</span></div>
+            <div class="mat-swatch" style="background:#b87333" onclick="applyMaterial('copper')" title="Copper"><span>Cu</span></div>
+            <div class="mat-swatch" style="background:#d4af37" onclick="applyMaterial('brass')" title="Brass"><span>Brass</span></div>
+            <div class="mat-swatch" style="background:#3a3a3a" onclick="applyMaterial('iron')" title="Cast Iron"><span>Iron</span></div>
+            <div class="mat-swatch" style="background:#88ccff;opacity:0.6" onclick="applyMaterial('glass')" title="Glass"><span>Glass</span></div>
+            <div class="mat-swatch" style="background:#c0c0c0" onclick="applyMaterial('aluminum')" title="Aluminum"><span>Al</span></div>
+        </div>
+    </div>
+
+    <div class="prop-group">
+        <h4>إحصائيات المشهد</h4>
+        <div class="prop-row"><span>Vertices</span><span id="stat-verts">0</span></div>
+        <div class="prop-row"><span>Triangles</span><span id="stat-tris">0</span></div>
+    </div>
+    
+    <div class="prop-group">
+        <h4>تصدير (Export)</h4>
+        <button class="btn" style="width:100%;margin-bottom:8px" onclick="exportSTL()">تصدير STL (3D Print)</button>
+        <button class="btn" style="width:100%" onclick="exportOBJ()">تصدير OBJ</button>
+    </div>
+</div>
+
+<div id="statusbar">
+    <div id="status-coords">X: 0.0 Y: 0.0 Z: 0.0</div>
+    <div id="status-msg">Ready</div>
+    <div>Z·CAD Pro v2.0</div>
+</div>
+
+<!-- Dialog for Extrusion -->
+<dialog id="extrude-dialog">
+    <form method="dialog" id="extrude-form">
+        <h3>⚙️ إعدادات البثق (Extrude)</h3>
+        <div class="form-group">
+            <label>ارتفاع البثق (mm)</label>
+            <input type="number" id="extrude-height" value="20" step="0.1" min="0.1" required>
+        </div>
+        <div class="dialog-btns">
+            <button type="button" class="btn" onclick="document.getElementById('extrude-dialog').close()">إلغاء</button>
+            <button type="submit" class="btn primary">إنشاء</button>
+        </div>
+    </form>
 </dialog>
 
-<div id="toast-container"></div>
-
-<script type="module">
+<script type="module-shim">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
 
-// [جميع الأكواد المُدرجة سابقاً تُنسخ هنا — نفس المحتوى تماماً]
-// للاختصار، الملف الكامل متاح أدناه في القسم التالي مباشرة
+// ==========================================
+// 1. Scene Setup (SolidWorks Style)
+// ==========================================
+let scene, camera, renderer, orbitControls, transformControls;
+let objects = []; // Array of selectable meshes
+let selectedObject = null;
+let currentTool = 'select';
+let isDrawing = false;
+let drawPoints = [];
+let drawingPreview = null;
+
+const canvas = document.getElementById('cad-canvas');
+const mainContainer = document.getElementById('main');
+
+function init() {
+    // Scene
+    scene = new THREE.Scene();
+    // Transparent background to show CSS gradient (SolidWorks style)
+    scene.background = null; 
+
+    // Camera (Isometric View)
+    const aspect = mainContainer.clientWidth / mainContainer.clientHeight;
+    camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 5000);
+    camera.position.set(300, 300, 300);
+    camera.lookAt(0, 0, 0);
+
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(mainContainer.clientWidth, mainContainer.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Controls
+    orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.05;
+    orbitControls.maxPolarAngle = Math.PI / 2; // Prevent going under floor
+
+    // Transform Controls (Move/Rotate)
+    transformControls = new TransformControls(camera, renderer.domElement);
+    transformControls.addEventListener('dragging-changed', function (event) {
+        orbitControls.enabled = !event.value;
+    });
+    transformControls.addEventListener('objectChange', updateStats);
+    scene.add(transformControls);
+
+    // Lighting (Soft neutral lighting like SolidWorks PhotoView)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    hemiLight.position.set(0, 200, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight.position.set(100, 200, 150);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.top = 200;
+    dirLight.shadow.camera.bottom = -200;
+    dirLight.shadow.camera.left = -200;
+    dirLight.shadow.camera.right = 200;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    scene.add(dirLight);
+
+    // Ground Grid (Infinite feel)
+    const gridHelper = new THREE.GridHelper(1000, 100, 0x888888, 0xcccccc);
+    gridHelper.position.y = -0.1;
+    scene.add(gridHelper);
+
+    // Add a subtle ground plane to catch shadows
+    const planeGeo = new THREE.PlaneGeometry(1000, 1000);
+    const planeMat = new THREE.ShadowMaterial({ opacity: 0.1 });
+    const plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.rotation.x = -Math.PI / 2;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    // Load Default Model
+    loadAMRModel();
+
+    // Event Listeners
+    window.addEventListener('resize', onWindowResize);
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    
+    // Hide Loader
+    setTimeout(() => {
+        document.getElementById('loader').classList.add('hidden');
+    }, 800);
+
+    animate();
+}
+
+// ==========================================
+// 2. Main Loop
+// ==========================================
+function animate() {
+    requestAnimationFrame(animate);
+    orbitControls.update();
+    renderer.render(scene, camera);
+    updateAnnotations();
+}
+
+function onWindowResize() {
+    const w = mainContainer.clientWidth;
+    const h = mainContainer.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+}
+
+// ==========================================
+// 3. Default Model: AMR System (SolidWorks Style)
+// ==========================================
+function createMaterial(type) {
+    const mats = {
+        'steel': new THREE.MeshStandardMaterial({ color: 0x8a9597, metalness: 0.9, roughness: 0.3 }),
+        'copper': new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: 0.8, roughness: 0.4 }),
+        'brass': new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }),
+        'iron': new THREE.MeshStandardMaterial({ color: 0x3a3a3a, metalness: 0.6, roughness: 0.8 }),
+        'glass': new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.1, transmission: 0.9, transparent: true, opacity: 0.5, thickness: 0.5 }),
+        'aluminum': new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.8, roughness: 0.5 }),
+        'magnet': new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9, roughness: 0.4 }),
+        'gd': new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.95, roughness: 0.1 })
+    };
+    return mats[type] || mats['steel'];
+}
+
+function loadAMRModel() {
+    clearScene();
+    document.getElementById('hud-status').textContent = "Loading AMR...";
+    
+    const assembly = new THREE.Group();
+    assembly.name = "AMR_Assembly";
+
+    // 1. Halbach Cylinder Array (8 Segments)
+    const halbachGroup = new THREE.Group();
+    const radius = 60;
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const geo = new THREE.CylinderGeometry(20, 20, 120, 16, 1, false, 0, Math.PI / 4);
+        const mat = createMaterial('magnet');
+        const seg = new THREE.Mesh(geo, mat);
+        seg.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+        seg.rotation.y = -angle;
+        seg.rotation.z = Math.PI / 2;
+        seg.castShadow = true;
+        seg.receiveShadow = true;
+        halbachGroup.add(seg);
+    }
+    assembly.add(halbachGroup);
+
+    // 2. AMR Core (Transparent cylinder)
+    const coreGeo = new THREE.CylinderGeometry(25, 25, 140, 32);
+    const coreMat = createMaterial('glass');
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.castShadow = true;
+    core.name = "AMR_Core_Glass";
+    assembly.add(core);
+
+    // 3. Gd Spheres (InstancedMesh for performance)
+    const sphereGeo = new THREE.SphereGeometry(2, 16, 16);
+    const sphereMat = createMaterial('gd');
+    const numSpheres = 150;
+    const instancedMesh = new THREE.InstancedMesh(sphereGeo, sphereMat, numSpheres);
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < numSpheres; i++) {
+        // Random distribution inside the cylinder
+        const r = Math.random() * 22;
+        const theta = Math.random() * Math.PI * 2;
+        const y = (Math.random() - 0.5) * 130;
+        dummy.position.set(Math.cos(theta) * r, y, Math.sin(theta) * r);
+        dummy.updateMatrix();
+        instancedMesh.setMatrixAt(i, dummy.matrix);
+    }
+    instancedMesh.castShadow = true;
+    instancedMesh.name = "Gd_Spheres";
+    assembly.add(instancedMesh);
+
+    // 4. Heat Exchangers (HHEX right, CHEX left)
+    const hhexGeo = new THREE.BoxGeometry(40, 80, 40);
+    const hhexMat = createMaterial('copper');
+    const hhex = new THREE.Mesh(hhexGeo, hhexMat);
+    hhex.position.set(90, 0, 0);
+    hhex.castShadow = true;
+    hhex.receiveShadow = true;
+    hhex.name = "HHEX_Copper";
+    assembly.add(hhex);
+
+    const chexGeo = new THREE.BoxGeometry(40, 80, 40);
+    const chex = new THREE.Mesh(chexGeo, hhexMat);
+    chex.position.set(-90, 0, 0);
+    chex.castShadow = true;
+    chex.receiveShadow = true;
+    chex.name = "CHEX_Copper";
+    assembly.add(chex);
+
+    // 5. Piping System
+    const pipeMat = createMaterial('steel');
+    const createPipe = (start, end, radius) => {
+        const direction = new THREE.Vector3().subVectors(end, start);
+        const length = direction.length();
+        const cylinder = new THREE.CylinderGeometry(radius, radius, length, 16);
+        cylinder.translate(0, length / 2, 0); // Move pivot to start
+        const mesh = new THREE.Mesh(cylinder, pipeMat);
+        mesh.position.copy(start);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+        mesh.castShadow = true;
+        return mesh;
+    };
+
+    // Pipe from CHEX to core
+    assembly.add(createPipe(new THREE.Vector3(-90, 40, 0), new THREE.Vector3(-25, 40, 0), 4));
+    assembly.add(createPipe(new THREE.Vector3(-25, 40, 0), new THREE.Vector3(-25, 70, 0), 4));
+    
+    // Pipe from core to HHEX
+    assembly.add(createPipe(new THREE.Vector3(25, -40, 0), new THREE.Vector3(90, -40, 0), 4));
+
+    // 6. Circulation Pump (Cast Iron)
+    const pumpGeo = new THREE.CylinderGeometry(20, 20, 30, 16);
+    const pumpMat = createMaterial('iron');
+    const pump = new THREE.Mesh(pumpGeo, pumpMat);
+    pump.position.set(0, -80, 60);
+    pump.rotation.x = Math.PI / 2;
+    pump.castShadow = true;
+    pump.name = "Pump_CastIron";
+    assembly.add(pump);
+    
+    // Pump pipe to HHEX
+    assembly.add(createPipe(new THREE.Vector3(0, -80, 60), new THREE.Vector3(0, -80, 0), 4));
+    assembly.add(createPipe(new THREE.Vector3(0, -80, 0), new THREE.Vector3(90, -80, 0), 4));
+    assembly.add(createPipe(new THREE.Vector3(90, -80, 0), new THREE.Vector3(90, -40, 0), 4));
+
+    // Enable selection on all meshes in assembly
+    assembly.traverse(child => {
+        if (child.isMesh) {
+            child.userData.isSelectable = true;
+            objects.push(child);
+        }
+    });
+
+    scene.add(assembly);
+    
+    // Center camera
+    orbitControls.target.set(0, 0, 0);
+    camera.position.set(250, 200, 250);
+    
+    // Update HUD
+    document.getElementById('hud-parts').textContent = objects.length;
+    document.getElementById('hud-status').textContent = "AMR Loaded";
+    updateStats();
+    createAnnotations();
+}
+
+function createAnnotations() {
+    // Simulate SolidWorks dimension annotations
+    const container = document.getElementById('annotations-container');
+    container.innerHTML = '';
+    
+    const annotations = [
+        { text: "Ø220", pos: new THREE.Vector3(0, 80, 0) },
+        { text: "300", pos: new THREE.Vector3(0, -100, 0) },
+        { text: "HHEX", pos: new THREE.Vector3(90, 50, 0) },
+        { text: "CHEX", pos: new THREE.Vector3(-90, 50, 0) }
+    ];
+
+    annotations.forEach(ann => {
+        const el = document.createElement('div');
+        el.className = 'dimension-label';
+        el.textContent = ann.text;
+        el.userData = { pos: ann.pos };
+        container.appendChild(el);
+    });
+}
+
+function updateAnnotations() {
+    const container = document.getElementById('annotations-container');
+    if (!container) return;
+    
+    Array.from(container.children).forEach(el => {
+        const pos = el.userData.pos.clone();
+        pos.project(camera);
+        
+        const x = (pos.x * 0.5 + 0.5) * mainContainer.clientWidth;
+        const y = (-(pos.y * 0.5) + 0.5) * mainContainer.clientHeight;
+        
+        if (pos.z < 1) {
+            el.style.display = 'block';
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+        } else {
+            el.style.display = 'none';
+        }
+    });
+}
+
+// ==========================================
+// 4. Interaction & Tools
+// ==========================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function onPointerDown(event) {
+    if (event.button !== 0) return; // Left click only
+    if (currentTool !== 'select') return; // Only select tool interacts directly here
+
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(objects);
+
+    if (intersects.length > 0) {
+        selectObject(intersects[0].object);
+    } else {
+        selectObject(null);
+    }
+}
+
+function onPointerMove(event) {
+    // Update status bar coordinates
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects([scene.children.find(c => c.type === 'Mesh' || c.type === 'GridHelper')]);
+    
+    if (intersects.length > 0) {
+        const p = intersects[0].point;
+        document.getElementById('status-coords').textContent = `X: ${p.x.toFixed(1)} Y: ${p.y.toFixed(1)} Z: ${p.z.toFixed(1)}`;
+    }
+}
+
+function selectObject(obj) {
+    if (selectedObject) {
+        // Remove highlight
+        if (selectedObject.userData.originalMaterial) {
+            selectedObject.material = selectedObject.userData.originalMaterial;
+        }
+    }
+    
+    selectedObject = obj;
+    
+    if (selectedObject) {
+        // Add highlight (emissive)
+        selectedObject.userData.originalMaterial = selectedObject.material;
+        selectedObject.material = selectedObject.material.clone();
+        selectedObject.material.emissive = new THREE.Color(0x00d4ff);
+        selectedObject.material.emissiveIntensity = 0.3;
+        
+        transformControls.attach(selectedObject);
+        document.getElementById('hud-status').textContent = `Selected: ${selectedObject.name || 'Part'}`;
+    } else {
+        transformControls.detach();
+        document.getElementById('hud-status').textContent = "Ready";
+    }
+}
+
+function setTool(tool) {
+    currentTool = tool;
+    document.getElementById('hud-tool').textContent = tool;
+    // Highlight active button (basic logic)
+    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+    // If it's a drawing tool, detach transform
+    if (tool === 'rect' || tool === 'circle') {
+        transformControls.detach();
+        selectObject(null);
+    }
+}
+
+function toggleTransform(mode) {
+    if (!selectedObject) {
+        alert("الرجاء تحديد جسم أولاً");
+        return;
+    }
+    transformControls.setMode(mode);
+    transformControls.attach(selectedObject);
+}
+
+function applyMaterial(type) {
+    if (!selectedObject) return;
+    
+    // Update swatch UI
+    document.querySelectorAll('.mat-swatch').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    // Apply material
+    selectedObject.material = createMaterial(type);
+    
+    // Maintain selection highlight
+    selectedObject.userData.originalMaterial = selectedObject.material;
+    selectedObject.material = selectedObject.material.clone();
+    selectedObject.material.emissive = new THREE.Color(0x00d4ff);
+    selectedObject.material.emissiveIntensity = 0.2;
+}
+
+// ==========================================
+// 5. Utilities (Clear, Cube, Export)
+// ==========================================
+function clearScene() {
+    transformControls.detach();
+    objects = [];
+    // Remove everything except lights and grid
+    scene.children = scene.children.filter(child => child.isLight || child.isGridHelper || child.type === 'Mesh' && child.geometry.type === 'PlaneGeometry');
+    if (selectedObject) selectedObject = null;
+    updateStats();
+    document.getElementById('hud-parts').textContent = objects.length;
+}
+
+function loadCube() {
+    clearScene();
+    const geo = new THREE.BoxGeometry(100, 100, 100);
+    const mat = createMaterial('aluminum');
+    const cube = new THREE.Mesh(geo, mat);
+    cube.castShadow = true;
+    cube.receiveShadow = true;
+    cube.userData.isSelectable = true;
+    cube.name = "Base_Cube";
+    
+    scene.add(cube);
+    objects.push(cube);
+    
+    document.getElementById('hud-parts').textContent = objects.length;
+    document.getElementById('hud-status').textContent = "Cube Loaded";
+    updateStats();
+}
+
+function updateStats() {
+    let verts = 0;
+    let tris = 0;
+    scene.traverse(obj => {
+        if (obj.isMesh && obj.geometry) {
+            verts += obj.geometry.attributes.position.count;
+            if (obj.geometry.index) {
+                tris += obj.geometry.index.count / 3;
+            } else {
+                tris += obj.geometry.attributes.position.count / 3;
+            }
+        }
+    });
+    document.getElementById('stat-verts').textContent = verts.toLocaleString();
+    document.getElementById('stat-tris').textContent = Math.floor(tris).toLocaleString();
+}
+
+function setView(view) {
+    const dist = 350;
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (view === 'iso') {
+        camera.position.set(dist, dist, dist);
+    } else if (view === 'front') {
+        camera.position.set(0, 0, dist);
+    } else if (view === 'top') {
+        camera.position.set(0, dist, 0);
+    } else if (view === 'right') {
+        camera.position.set(dist, 0, 0);
+    }
+    camera.lookAt(0, 0, 0);
+    orbitControls.target.set(0, 0, 0);
+}
+
+function exportSTL() {
+    const exporter = new STLExporter();
+    // Create a temporary scene to export only selectable objects (no grid/lights)
+    const exportScene = new THREE.Scene();
+    objects.forEach(obj => {
+        // Clone geometry and apply world matrix
+        const clone = new THREE.Mesh(obj.geometry, obj.material);
+        obj.getWorldPosition(clone.position);
+        obj.getWorldQuaternion(clone.quaternion);
+        obj.getWorldScale(clone.scale);
+        exportScene.add(clone);
+    });
+    
+    const result = exporter.parse(exportScene);
+    const blob = new Blob([result], { type: 'application/octet-stream' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'ZCAD_Export.stl';
+    link.click();
+}
+
+function exportOBJ() {
+    const exporter = new OBJExporter();
+    const exportScene = new THREE.Scene();
+    objects.forEach(obj => {
+        const clone = new THREE.Mesh(obj.geometry, obj.material);
+        obj.getWorldPosition(clone.position);
+        obj.getWorldQuaternion(clone.quaternion);
+        obj.getWorldScale(clone.scale);
+        exportScene.add(clone);
+    });
+    const result = exporter.parse(exportScene);
+    const blob = new Blob([result], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'ZCAD_Export.obj';
+    link.click();
+}
+
+// Start
+init();
 </script>
+
 </body>
 </html>
